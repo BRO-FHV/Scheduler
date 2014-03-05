@@ -58,7 +58,7 @@ process 	gThreads[MAX_PROCESSES];
 processID scheduler_startProcess(processFunc func) {
 	atomicStart();
 
-	processID newthreadID = getNextthreadID();
+	processID newthreadID = getNextProcessID();
 
 	if(INVALID_ID == newthreadID) {
 		atomicEnd();
@@ -77,13 +77,13 @@ processID scheduler_startProcess(processFunc func) {
 		//coming from long jump
 		//call thread functionallity, kill thread if finished..
 		//TODO
-		__set_SP_register(0x3FF - (gRunningThread * THREAD_SIZE));
+		//__set_SP_register(0x3FF - (gRunningThread * THREAD_SIZE));
 
 		atomicEnd();
 
 		gThreads[gRunningThread].func();
 
-		killThread(gRunningThread);
+		//killThread(gRunningThread);
 		return INVALID_ID;
 	}
 }
@@ -126,7 +126,7 @@ processID getNextProcess() {
 	return INVALID_ID;
 }
 
-processID getNextThreadID() {
+processID getNextProcessID() {
 	int i;
 	for(i = 0; i < MAX_PROCESSES; i++) {
 		if(FINISHED == gThreads[i].state) {
