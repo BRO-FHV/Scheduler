@@ -4,7 +4,8 @@
  *
  * Created on: 05.03.2014
  * Description:
- * TODO
+ * This file is only used to test the scheduler!
+ *
  */
 int main(void) {
 	
