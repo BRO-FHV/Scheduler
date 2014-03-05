@@ -7,6 +7,8 @@
  * This file is only used to test the scheduler!
  *
  */
+#include "scheduler.h"
+
 int main(void) {
 	
 	return 0;

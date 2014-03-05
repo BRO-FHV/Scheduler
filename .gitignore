@@ -5,6 +5,7 @@
 .settings/
 .launches/
 targetConfigs/
+Debug/
 
 
 # Object files
