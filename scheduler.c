@@ -37,7 +37,6 @@ typedef struct {
 	processID id;
 	processState state;
 	processFunc func;
-	jmp_buf context;
 } process;
 
 /*
@@ -70,22 +69,24 @@ processID scheduler_startProcess(processFunc func) {
 	gThreads[newthreadID].state = READY;
 	gThreads[newthreadID].func = func;
 
-	if(0 == setjmp(gThreads[newthreadID].context)) {
-		atomicEnd();
-		return newthreadID;
-	} else {
-		//coming from long jump
-		//call thread functionallity, kill thread if finished..
-		//TODO
-		//__set_SP_register(0x3FF - (gRunningThread * THREAD_SIZE));
 
-		atomicEnd();
 
-		gThreads[gRunningThread].func();
-
-		//killThread(gRunningThread);
-		return INVALID_ID;
-	}
+//	if(0 == setjmp(gThreads[newthreadID].context)) {
+//		atomicEnd();
+//		return newthreadID;
+//	} else {
+//		//coming from long jump
+//		//call thread functionallity, kill thread if finished..
+//		//TODO
+//		//__set_SP_register(0x3FF - (gRunningThread * THREAD_SIZE));
+//
+//		atomicEnd();
+//
+//		gThreads[gRunningThread].func();
+//
+//		//killThread(gRunningThread);
+//		return INVALID_ID;
+//	}
 }
 
 void scheduler_runNextProcess() {
@@ -101,7 +102,8 @@ void scheduler_runNextProcess() {
 		gRunningThread = nextthreadID;
 		gThreads[gRunningThread].state = RUNNING;
 
-		longjmp(gThreads[gRunningThread].context, 1);
+		//longjmp(gThreads[gRunningThread].context, 1);
+		gThreads[gRunningThread].func();
 	}
 
 	atomicEnd();
@@ -139,8 +141,10 @@ processID getNextProcessID() {
 
 void atomicStart() {
 	//TODO
+	enable_interrupts();
 }
 
 void atomicEnd() {
 	//TODO
+	disable_interrupts();
 }
