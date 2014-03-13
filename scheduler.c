@@ -87,6 +87,8 @@ processID scheduler_startProcess(processFunc func) {
 //		//killThread(gRunningThread);
 //		return INVALID_ID;
 //	}
+
+	return INVALID_ID; //TODO REMOVE
 }
 
 void scheduler_runNextProcess() {
@@ -141,10 +143,8 @@ processID getNextProcessID() {
 
 void atomicStart() {
 	//TODO
-	enable_interrupts();
 }
 
 void atomicEnd() {
 	//TODO
-	disable_interrupts();
 }
