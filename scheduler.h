@@ -20,12 +20,15 @@
  * Typedefs
  */
 typedef int32_t	processID;
+typedef	uint32_t* programCounter;
+typedef uint32_t registerCache;
+typedef uint32_t cpsrValue;
 typedef void 	(*processFunc)();
 
 /*
  * methods
  */
 void 		scheduler_runNextProcess();
-processID 	scheduler_startProcess	(processFunc func);
+void 	scheduler_startProcess	(processFunc func);
 
 #endif /* SCHEDULER_H_ */

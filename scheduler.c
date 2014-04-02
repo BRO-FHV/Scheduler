@@ -8,6 +8,8 @@
  * It uses the TODO strategy for deciding which process is next.
  *
  */
+
+#include <string.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <stdlib.h>
@@ -23,11 +25,7 @@
  * Process states
  */
 typedef enum {
-	FINISHED = 0,
-	WAITING,
-	READY,
-	RUNNING,
-	BLOCKED
+	FINISHED = 0, WAITING, READY, RUNNING, BLOCKED
 } processState;
 
 /*
@@ -37,75 +35,88 @@ typedef struct {
 	processID id;
 	processState state;
 	processFunc func;
+	programCounter pc;
+	registerCache reg[15];
+
+	/* Control Process Status Register */
+	cpsrValue cpsr;
+
 } process;
+
+typedef struct {
+
+	programCounter pc;
+	registerCache reg[15];
+	/* Control Process Status Register */
+	cpsrValue cpsr;
+
+} Context;
 
 /*
  * Methods
  */
-processID 	getNextProcess();
-processID 	getNextProcessID();
-void 		killThread(processID);
-void 		atomicStart();
-void 		atomicEnd();
+processID getNextProcess();
+processID getNextProcessID();
+void killThread(processID);
+void atomicStart();
+void atomicEnd();
 
 /*
  * Constants
  */
-processID 	gRunningThread = INVALID_ID;
-process 	gThreads[MAX_PROCESSES];
+processID gRunningThread = INVALID_ID;
+process gThreads[MAX_PROCESSES];
 
-processID scheduler_startProcess(processFunc func) {
+void scheduler_startProcess(processFunc func) {
 	atomicStart();
 
 	processID newthreadID = getNextProcessID();
 
-	if(INVALID_ID == newthreadID) {
+	if (INVALID_ID == newthreadID) {
 		atomicEnd();
-		//not possible to add further threads
-		return INVALID_ID;
+	} else {
+		gThreads[newthreadID].id = newthreadID;
+		gThreads[newthreadID].state = READY;
+		gThreads[newthreadID].func = func;
+
+		gThreads[newthreadID].pc = (programCounter)func;
+		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
+		gThreads[newthreadID].cpsr = 0x60000110;
+
+		// TODO: need a valid stack-pointer
+		void* stackPtr = (void*) malloc(1024);
+		memset(stackPtr, 'a', 1024);
+
+		gThreads[newthreadID].reg[13] = (uint32_t) stackPtr;
+
+
+
 	}
-
-	gThreads[newthreadID].id = newthreadID;
-	gThreads[newthreadID].state = READY;
-	gThreads[newthreadID].func = func;
-
-
-
-//	if(0 == setjmp(gThreads[newthreadID].context)) {
-//		atomicEnd();
-//		return newthreadID;
-//	} else {
-//		//coming from long jump
-//		//call thread functionallity, kill thread if finished..
-//		//TODO
-//		//__set_SP_register(0x3FF - (gRunningThread * THREAD_SIZE));
-//
-//		atomicEnd();
-//
-//		gThreads[gRunningThread].func();
-//
-//		//killThread(gRunningThread);
-//		return INVALID_ID;
-//	}
-
-	return INVALID_ID; //TODO REMOVE
 }
 
-void scheduler_runNextProcess() {
+void scheduler_runNextProcess(Context* context) {
 	atomicStart();
 
 	processID nextthreadID = getNextProcess();
 
-	if(INVALID_ID != nextthreadID) {
-		if(RUNNING == gThreads[gRunningThread].state) {
+	if (INVALID_ID != nextthreadID) {
+		if (RUNNING == gThreads[gRunningThread].state) {
 			gThreads[gRunningThread].state = READY;
+			gThreads[gRunningThread].pc = context->pc;
+			gThreads[gRunningThread].cpsr = context->cpsr;
+			memcpy(gThreads[gRunningThread].reg, context->reg,
+					sizeof(gThreads[gRunningThread].reg));
+
 		}
 
 		gRunningThread = nextthreadID;
 		gThreads[gRunningThread].state = RUNNING;
+		context->pc = gThreads[gRunningThread].pc;
+		context->cpsr = gThreads[gRunningThread].cpsr;
 
-		//longjmp(gThreads[gRunningThread].context, 1);
-		gThreads[gRunningThread].func();
+		memcpy(context->reg, gThreads[gRunningThread].reg,
+				sizeof(gThreads[gRunningThread].reg));
+
 	}
 
 	atomicEnd();
@@ -119,8 +130,8 @@ void killThread(processID threadID) {
 processID getNextProcess() {
 	processID nextID = gRunningThread + 1;
 
-	while(nextID != gRunningThread) {
-		if(READY == gThreads[nextID].state) {
+	while (nextID != gRunningThread) {
+		if (READY == gThreads[nextID].state) {
 			return nextID;
 		}
 
@@ -132,8 +143,8 @@ processID getNextProcess() {
 
 processID getNextProcessID() {
 	int i;
-	for(i = 0; i < MAX_PROCESSES; i++) {
-		if(FINISHED == gThreads[i].state) {
+	for (i = 0; i < MAX_PROCESSES; i++) {
+		if (FINISHED == gThreads[i].state) {
 			return i;
 		}
 	}
