@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <setjmp.h>
 #include <stdlib.h>
+#include <cpu/hw_cpu.h>
 #include "scheduler.h"
 
 /*
@@ -43,12 +44,11 @@ typedef struct {
 
 } process;
 
-typedef struct {
-
-	programCounter pc;
-	registerCache reg[15];
+typedef struct ctx {
 	/* Control Process Status Register */
 	cpsrValue cpsr;
+	programCounter pc;
+	registerCache reg[15];
 
 } Context;
 
@@ -79,7 +79,7 @@ void scheduler_startProcess(processFunc func) {
 		gThreads[newthreadID].state = READY;
 		gThreads[newthreadID].func = func;
 
-		gThreads[newthreadID].pc = (programCounter)func;
+		gThreads[newthreadID].pc = (programCounter) func;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x60000110;
 
@@ -88,8 +88,6 @@ void scheduler_startProcess(processFunc func) {
 		memset(stackPtr, 'a', 1024);
 
 		gThreads[newthreadID].reg[13] = (uint32_t) stackPtr;
-
-
 
 	}
 }
@@ -129,14 +127,18 @@ void killThread(processID threadID) {
 
 processID getNextProcess() {
 	processID nextID = gRunningThread + 1;
+	processID check = gRunningThread;
 
-	while (nextID != gRunningThread) {
+	if (gRunningThread == INVALID_ID) {
+		check = 0;
+	}
+	do {
 		if (READY == gThreads[nextID].state) {
 			return nextID;
 		}
 
 		nextID = ++nextID <= MAX_PROCESSES ? nextID : 0;
-	}
+	} while (nextID != check);
 
 	return INVALID_ID;
 }
@@ -153,9 +155,9 @@ processID getNextProcessID() {
 }
 
 void atomicStart() {
-	//TODO
+	//CPUirqd();
 }
 
 void atomicEnd() {
-	//TODO
+	//CPUirqe();
 }
