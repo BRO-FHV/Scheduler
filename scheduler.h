@@ -15,6 +15,7 @@
  */
 #define MAX_PROCESSES		10
 
+
 /*
  * Typedefs
  */
@@ -24,6 +25,31 @@ typedef uint32_t registerCache;
 typedef uint32_t cpsrValue;
 typedef void (*processFunc)();
 
+/*
+ * Process states
+ */
+typedef enum {
+	FINISHED = 0, WAITING, READY, RUNNING, BLOCKED
+} processState;
+
+/*
+ * Process structure
+ */
+typedef struct {
+	processID id;
+	processState state;
+	processFunc func;
+	programCounter pc;
+	registerCache reg[15];
+
+	/* Control Process Status Register */
+	cpsrValue cpsr;
+
+	uint32_t* masterTable;
+	volatile void* context[17];
+
+} process, process_t;
+
 
 typedef struct ctx Context;
 /*
@@ -31,5 +57,6 @@ typedef struct ctx Context;
  */
 void scheduler_runNextProcess(Context* context);
 void scheduler_startProcess(processFunc func);
+process_t* SchedulerCurrentProcess(void);
 
 #endif /* SCHEDULER_H_ */

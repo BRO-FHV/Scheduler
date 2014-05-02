@@ -22,28 +22,6 @@
 #define THREAD_SIZE		32
 #define INVALID_ID		-1
 
-/*
- * Process states
- */
-typedef enum {
-	FINISHED = 0, WAITING, READY, RUNNING, BLOCKED
-} processState;
-
-/*
- * Process structure
- */
-typedef struct {
-	processID id;
-	processState state;
-	processFunc func;
-	programCounter pc;
-	registerCache reg[15];
-
-	/* Control Process Status Register */
-	cpsrValue cpsr;
-
-} process;
-
 typedef struct ctx {
 	/* Control Process Status Register */
 	cpsrValue cpsr;
@@ -160,4 +138,8 @@ void atomicStart() {
 
 void atomicEnd() {
 	//CPUirqe();
+}
+
+process_t* SchedulerCurrentProcess(void){
+	return &gThreads[gRunningThread];
 }
