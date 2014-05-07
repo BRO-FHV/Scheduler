@@ -43,7 +43,7 @@ void atomicEnd();
  * Constants
  */
 processID gRunningThread = INVALID_ID;
-process gThreads[MAX_PROCESSES];
+Process gThreads[MAX_PROCESSES];
 
 void scheduler_startProcess(processFunc func) {
 	atomicStart();
@@ -140,6 +140,6 @@ void atomicEnd() {
 	//CPUirqe();
 }
 
-process_t* SchedulerCurrentProcess(void){
+Process* SchedulerCurrentProcess(void){
 	return &gThreads[gRunningThread];
 }
