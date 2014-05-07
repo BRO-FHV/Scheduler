@@ -15,12 +15,16 @@
 #include <stdlib.h>
 #include <cpu/hw_cpu.h>
 #include "scheduler.h"
+#include "mmu/sc_mmu.h"
+#include "mem/sc_mem.h"
 
 /*
  * Defines
  */
 #define THREAD_SIZE		32
 #define INVALID_ID		-1
+
+volatile void* current_context;
 
 typedef struct ctx {
 	/* Control Process Status Register */
@@ -67,6 +71,14 @@ void scheduler_startProcess(processFunc func) {
 
 		gThreads[newthreadID].reg[13] = (uint32_t) stackPtr;
 
+		gThreads[newthreadID].context[0] = (void*) &func;
+		gThreads[newthreadID].context[14] = (void*) stackPtr;
+		gThreads[newthreadID].context[16] = (void*) _get_CPSR();
+
+		gThreads[newthreadID].masterTable =
+				(tablePointer) mmu_create_master_table();
+
+		mmu_init_process(&gThreads[newthreadID]);
 	}
 }
 
@@ -90,9 +102,13 @@ void scheduler_runNextProcess(Context* context) {
 		context->pc = gThreads[gRunningThread].pc;
 		context->cpsr = gThreads[gRunningThread].cpsr;
 
+		current_context = &gThreads[gRunningThread].context;
+
 		memcpy(context->reg, gThreads[gRunningThread].reg,
 				sizeof(gThreads[gRunningThread].reg));
 
+		mmu_switch_to_process(&gThreads[gRunningThread]);
+		//__context_load();
 	}
 
 	atomicEnd();
@@ -140,6 +156,6 @@ void atomicEnd() {
 	//CPUirqe();
 }
 
-Process* SchedulerCurrentProcess(void){
+Process* SchedulerCurrentProcess(void) {
 	return &gThreads[gRunningThread];
 }
