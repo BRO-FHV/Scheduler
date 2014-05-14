@@ -20,7 +20,7 @@
  */
 typedef int32_t processID;
 typedef uint32_t* programCounter;
-typedef uint32_t registerCache;
+typedef void* registerCache;
 typedef uint32_t cpsrValue;
 typedef uint32_t* tablePointer;
 typedef void (*processFunc)();
@@ -46,7 +46,6 @@ typedef struct {
 	cpsrValue cpsr;
 
 	uint32_t* masterTable;
-	volatile void* context[17];
 
 } Process;
 
