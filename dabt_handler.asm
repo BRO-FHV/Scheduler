@@ -27,7 +27,7 @@
 ; define global symbols (share between c and asm)
 ;
 	.global dabt_handler
-	.global MMUHandleDabt
+	.global MmuHandleDabt
 
 ;
 ; DABT handler function definition
@@ -50,7 +50,7 @@ dabt_handler:
 	;
 	; start interrupt handler
 	;
-	BL 		MMUHandleDabt
+	BL 		MmuHandleDabt
 
 	;
 	; TODO change comments
@@ -64,4 +64,4 @@ dabt_handler:
 	ADD		SP, SP, #60					; increment stack-pointer: 15 * 4 bytes = 60bytes
 
  	; TODO: when a process-switch was performed: MOVS	PC, LR should be enough, otherwise we must return to the instruction which was canceled by IRQ thus using SUBS
- 	SUBS	PC, LR, #4
+ 	SUBS	PC, LR, #4					; return from IRQ

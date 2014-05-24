@@ -12,6 +12,6 @@
 
 void MmuInit();
 
-void MMUHandleDabt(Context* context);
+void MmuHandleDabt(Context* context);
 
 #endif /* SC_MMU_C_ */

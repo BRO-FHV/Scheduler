@@ -101,6 +101,17 @@ void MmuInit() {
 	__mmu_enable();
 }
 
+void MmuHandleDabt(Context* context) {
+	if (!_mmuHandleDataAbort()) {
+		scheduler_runNextProcess(context);
+	}
+
+	Process* process = SchedulerCurrentProcess();
+	if (process != NULL) {
+		_mmuSwitchToProcess(process);
+	}
+}
+
 tablePointer _mmuCreateMasterTable() {
 	// find some free pages in our memory to place the table
 	tablePointer tableAddress = (tablePointer) MemFindFree(
@@ -123,17 +134,6 @@ void _mmuSetProcessTable(tablePointer table) {
 	mmuCurrentMasterTable = tableAddress;
 	__mmu_flush_tlb();
 	__mmu_set_process_table(tableAddress);
-}
-
-void MMUHandleDabt(Context* context) {
-	if (!_mmuHandleDataAbort()) {
-		scheduler_runNextProcess(context);
-	}
-
-	Process* process = SchedulerCurrentProcess();
-	if (process != NULL) {
-		_mmuSwitchToProcess(process);
-	}
 }
 
 Boolean _mmuHandleDataAbort() {
