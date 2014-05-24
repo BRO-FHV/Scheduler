@@ -11,6 +11,7 @@
 #include <string.h>
 #include <basic.h>
 #include <stdio.h>
+#include "sc_mmu.h"
 #include "mmu_internals.h"
 #include "../context.h"
 #include "../scheduler.h"
@@ -49,9 +50,9 @@ volatile uint32_t mmuAccessedAddress;
 volatile uint32_t mmuFaultState;
 
 // internal function definitions
-tablePointer _mmuCreateMasterTable();
 void _mmuSetKernelTable(tablePointer table);
 void _mmuSetProcessTable(tablePointer table);
+tablePointer _mmuCreateMasterTable();
 Boolean _mmuHandleDataAbort();
 void _mmuSwitchTokernel();
 void _mmuSwitchToProcess(Process* process);
@@ -61,6 +62,9 @@ void _mmuCreateAddressMapping(tablePointer masterTable, uint32_t virtualAddress,
 		uint32_t physicalAddress, uint8_t domain);
 Boolean _mmuIsLegal(uint32_t accessedAddress, uint32_t faultState);
 void _mmuCreatePageMapping(tablePointer masterTable, uint32_t virtualAddress,
+		uint8_t domain);
+void _mmuCreateDirectMappingRange(tablePointer masterTable,
+		uint32_t physicalStartAddress, uint32_t physicalEndAddress,
 		uint8_t domain);
 
 void MmuInit() {
@@ -99,6 +103,27 @@ void MmuInit() {
 	// full access
 	__mmu_set_domain_access(0xFFFFFFFF);
 	__mmu_enable();
+}
+
+tablePointer MmuCreateMasterTable() {
+	return _mmuCreateMasterTable();
+}
+
+void MmuSwitchToProcess(Process* process) {
+	_mmuSwitchToProcess(process);
+}
+
+void MmuInitProcess(Process* process) {
+	// map direct regions in all master tables
+	uint32_t i;
+	for (i = 0; i < MEM_REGION_COUNT; i++) {
+		Region* region = MemGet(i);
+		// reserve all pages if region is direct mapping
+		if (region->direct == TRUE) {
+			_mmuCreateDirectMappingRange(process->masterTable, region->start,
+					region->end, 0);
+		}
+	}
 }
 
 void MmuHandleDabt(Context* context) {
@@ -286,3 +311,30 @@ tablePointer _mmuGetOrCreateL2Table(tablePointer masterTable,
 	return l2Table;
 }
 
+void _mmuCreateDirectMappingRange(tablePointer masterTable,
+		uint32_t physicalStartAddress, uint32_t physicalEndAddress,
+		uint8_t domain) {
+	uint32_t i;
+	uint32_t masterEntryCount;
+	uint32_t masterEntryIndex;
+	tablePointer currentTableEntry;
+	// mark page as reserved
+	masterEntryCount = (physicalEndAddress - physicalStartAddress)
+			/ MMU_SECTION_ENTRY_SIZE;
+	// if there is still a little space, reserve one more
+	if (((physicalEndAddress - physicalStartAddress) % MMU_SECTION_ENTRY_SIZE)
+			> 0) {
+		masterEntryCount++;
+	}
+
+	// map the addresses directly (as sections)
+	masterEntryIndex = MMU_VIRTUAL_TO_MASTER_TABLE_ENTRY(physicalStartAddress);
+	currentTableEntry = masterTable + masterEntryIndex;
+	for (i = 0; i < masterEntryCount; i++) {
+		*currentTableEntry = (masterEntryIndex << 20)
+				| MMU_SECTION_ENTRY_KERNEL_INITIAL;
+
+		masterEntryIndex++;
+		currentTableEntry++;
+	}
+}

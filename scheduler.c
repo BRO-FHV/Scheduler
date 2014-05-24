@@ -61,19 +61,13 @@ void scheduler_startProcess(processFunc func) {
 
 		gThreads[newthreadID].pc = (programCounter) func;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
-		//gThreads[newthreadID].cpsr = 0x00000110;
-		gThreads[newthreadID].cpsr = _get_CPSR();
-
-		// TODO: need a valid stack-pointer
-		// void* stackPtr = (void*) malloc(1024);
-		// memset(stackPtr, 'a', 1024);
-		// gThreads[newthreadID].reg[13] = (uint32_t) stackPtr;
+		gThreads[newthreadID].cpsr = 0x00000110;
 
 		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
 				+ PROCESS_STACK_SIZE);
-		// TODO gThreads[newthreadID].masterTable = (tablePointer) mmu_create_master_table();
+		gThreads[newthreadID].masterTable = (tablePointer) MmuCreateMasterTable();
 
-		// TODO mmu_init_process(&gThreads[newthreadID]);
+		MmuInitProcess(&gThreads[newthreadID]);
 	}
 }
 
@@ -100,7 +94,7 @@ void scheduler_runNextProcess(Context* context) {
 		memcpy(context->reg, gThreads[gRunningThread].reg,
 				sizeof(gThreads[gRunningThread].reg));
 
-		// TODO mmu_switch_to_process(&gThreads[gRunningThread]);
+		MmuSwitchToProcess(&gThreads[gRunningThread]);
 
 		uint32_t* x = malloc(sizeof(uint32_t));
 		*x = 0x00;

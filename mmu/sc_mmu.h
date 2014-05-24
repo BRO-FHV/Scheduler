@@ -10,7 +10,15 @@
 #ifndef SC_MMU_C_
 #define SC_MMU_C_
 
+#include "../scheduler.h"
+
 void MmuInit();
+
+tablePointer MmuCreateMasterTable();
+
+void MmuInitProcess(Process* process);
+
+void MmuSwitchToProcess(Process* process);
 
 void MmuHandleDabt(Context* context);
 
