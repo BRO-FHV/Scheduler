@@ -14,6 +14,8 @@
 
 Region regions[MEM_REGION_COUNT];
 
+extern volatile uint32_t ext_ddr_user_start;
+
 // internal function definitions
 void _memInitOne(Region* region);
 void* _memGetPageAddress(uint32_t type, uint32_t pageNumber);
@@ -38,17 +40,11 @@ void MemInit() {
 	regions[2].end = 0x80FFFFFF;
 	_memInitOne(&regions[2]);
 
-	// SDRAM: PageTables
-	regions[3].direct = TRUE;
-	regions[3].start = 0x81000000;
-	regions[3].end = 0x811FFFFF;
-	_memInitOne(&regions[3]);
-
 	// SDRAM: Process Pages
-	regions[4].direct = FALSE;
-	regions[4].start = 0x81200000;
-	regions[4].end = 0xBFFFFFFF;
-	_memInitOne(&regions[4]);
+	regions[3].direct = FALSE;
+	regions[3].start = 0x81000000;
+	regions[3].end = 0xBFFFFFFF;
+	_memInitOne(&regions[3]);
 }
 
 void _memInitOne(Region* region) {

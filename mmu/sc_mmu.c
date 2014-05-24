@@ -176,7 +176,6 @@ Boolean _mmuHandleDataAbort() {
 		return FALSE;
 	} else {
 		if (_mmuIsLegal(mmuAccessedAddress, mmuFaultState)) {
-			printf("create mapped page\n");
 			_mmuCreatePageMapping(currentProcess->masterTable,
 					mmuAccessedAddress, 0);
 			return TRUE;
@@ -253,6 +252,8 @@ void _mmuCreatePageMapping(tablePointer masterTable, uint32_t virtualAddress,
 	// and map it to the given master table
 	_mmuCreateAddressMapping(masterTable, virtualAddress,
 			(uint32_t) physicalAddress, domain);
+
+	printf("create mapped page (PM: %p, VM: %x)\n", physicalAddress, virtualAddress);
 }
 
 void _mmuCreateAddressMapping(tablePointer masterTable, uint32_t virtualAddress,
