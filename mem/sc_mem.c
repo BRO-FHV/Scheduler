@@ -1,160 +1,130 @@
 /*
- * Driver: sc_mem.c
+ * Scheduler: sc_mem.c
  * Part of BRO Project, 2014 <<https://github.com/BRO-FHV>>
  *
- * Created on: May 07, 2014
+ * Created on: 24.05.2014
  * Description:
- * Physical Memory
+ * TODO
  */
 
-#include "sc_mem.h"
-#include "../mmu/sc_mmu.h"
-#include <context/mmu.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <basic.h>
+#include "sc_mem.h"
 
-uint32_t intvecs_start;
-uint32_t intvecs_size;
+Region regions[MEM_REGION_COUNT];
 
-uint8_t memory_count;
-MemMemory* memories;
+// internal function definitions
+void _memInitOne(Region* region);
+void* _memGetPageAddress(uint32_t type, uint32_t pageNumber);
 
-uint8_t device_memory_count;
-MemDevicememory* device_memories;
+void MemInit() {
+	// Boot ROM
+	regions[0].direct = TRUE;
+	regions[0].start = 0x40000000;
+	regions[0].end = 0x4002BFFF;
+	_memInitOne(&regions[0]);
 
-// Two booleans for each entry
-MemMemory* MemGet(MemoryType t)
-{
-    return &memories[t];
+	// Memory Mapped IO
+	regions[1].direct = TRUE;
+	regions[1].start = 0x40300000;
+	regions[1].end = 0x7FFFFFFF;
+	_memInitOne(&regions[1]);
+
+	// TODO get from linker script
+	// SDRAM: Kernel
+	regions[2].direct = TRUE;
+	regions[2].start = 0x80000000;
+	regions[2].end = 0x80FFFFFF;
+	_memInitOne(&regions[2]);
+
+	// SDRAM: PageTables
+	regions[3].direct = TRUE;
+	regions[3].start = 0x81000000;
+	regions[3].end = 0x811FFFFF;
+	_memInitOne(&regions[3]);
+
+	// SDRAM: Process Pages
+	regions[4].direct = FALSE;
+	regions[4].start = 0x81200000;
+	regions[4].end = 0xBFFFFFFF;
+	_memInitOne(&regions[4]);
 }
 
-void MemInit(void)
-{
-    MemoryType i;
-    HalMemInit();
-
-    for(i = 0; i < memory_count; i++)
-    {
-        memories[i].pageTableTotalCount = memories[i].globalSize  / MMU_MASTER_TABLE_PAGE_SIZE;
-        memories[i].pageTableAllocatedCount = 0;
-        memories[i].pageTableLookup = malloc(sizeof(MemPagetableLookup) * memories[i].pageTableTotalCount);
-        memset(memories[i].pageTableLookup, 0, sizeof(MemPagetableLookup) * memories[i].pageTableTotalCount);
-    }
+void _memInitOne(Region* region) {
+	// calculate length of region
+	region->length = region->end - region->start;
+	// calculate page count direct use 1MB pages / indirect use 64kB pages
+	region->totalPageCount = region->length / MEM_PAGE_SIZE;
+	region->alocatedPageCount = 0;
+	// init page lookup
+	region->lookup = malloc(sizeof(PageTableLookup) * region->totalPageCount);
+	memset(region->lookup, 0, sizeof(PageTableLookup) * region->totalPageCount);
 }
 
-void MemReservePages(MemoryType type, uint32_t firstPageNumber, uint32_t pageCount)
-{
-    int i;
-    for (i = 0; i < pageCount; i++)
-    {
-        MemReservePage(type, firstPageNumber + i);
-    }
+Region* MemGet(uint32_t type) {
+	return &regions[type];
 }
 
-void MemReservePage(MemoryType type, uint32_t pageNumber)
-{
-    MemMemory* m = MemGet(type);
-    if (pageNumber >= m->pageTableTotalCount)
-    {
-        return;
-    }
-    m->pageTableLookup[pageNumber].reserved = TRUE;
-    m->pageTableAllocatedCount++;
-    return;
+void MemReservePages(uint32_t type, uint32_t firstPage, uint32_t pageCount) {
+	uint32_t i;
+	for (i = 0; i < pageCount; i++) {
+		MemReservePage(type, firstPage + i);
+	}
 }
 
-void MemFreePage(MemoryType type, uint32_t pageNumber)
-{
-    MemMemory* m = MemGet(type);
-    if (pageNumber >= m->pageTableTotalCount)
-    {
-        return;
-    }
-    m->pageTableLookup[pageNumber].reserved = FALSE;
-    m->pageTableAllocatedCount--;
-    // reset the memory of the page
-    memset(MemGetPageAddress(type, pageNumber), 0, MMU_MASTER_TABLE_PAGE_SIZE);
+void MemReservePage(uint32_t type, uint32_t pageNumber) {
+	Region* region = MemGet(type);
+	if (pageNumber >= region->totalPageCount) {
+		return;
+	}
+	region->lookup[pageNumber].reserved = TRUE;
+	region->alocatedPageCount++;
 }
 
-void MemFreePages(MemoryType type, uint32_t firstPageNumber, uint32_t pageCount)
-{
-    int i;
-    for (i = 0; i < pageCount; i++)
-    {
-        MemFreePage(type, firstPageNumber + i);
-    }
+void* MemFindFree(uint32_t pageCount, Boolean align, Boolean reserve) {
+	void* address;
+	uint32_t i;
+	for (i = 0; i < MEM_REGION_COUNT; i++) {
+		address = MemFindFreeIn(i, pageCount, align, reserve);
+		if (address != NULL) {
+			return address;
+		}
+	}
+	return NULL;
 }
 
-void* MemGetPageAddress(MemoryType type, uint32_t pageNumber)
-{
-    MemMemory* m = MemGet(type);
-    if (pageNumber >= m->pageTableTotalCount)
-    {
-        return NULL;
-    }
-    return (void*) (m->globalStartAddress + (pageNumber * MMU_MASTER_TABLE_PAGE_SIZE));
+void* MemFindFreeIn(uint32_t type, uint32_t pageCount, Boolean align,
+		Boolean reserve) {
+	// find pageCount unoccupied pages in a row
+	void* result = NULL;
+	Region* region = MemGet(type);
+	uint32_t pagesFound = 0;
+	uint32_t i;
+
+	for (i = 0; i < region->totalPageCount; i++) {
+		if (!region->lookup[i].reserved
+				&& ((!align) || (pagesFound > 0) || ((i % pageCount) == 0))) {
+			pagesFound++;
+			if (pagesFound == pageCount) {
+				result = _memGetPageAddress(type, (i - pageCount) + 1);
+				if (reserve) {
+					MemReservePages(type, (i - pageCount) + 1, pageCount);
+				}
+				break;
+			}
+		} else {
+			pagesFound = 0;
+		}
+	}
+	return result;
 }
 
-uint32_t MemGetPageNumber(MemoryType* type, uint32_t address)
-{
-    MemoryType i;
-    MemMemory* m;
-    for(i = 0; i < memory_count; i++)
-    {
-        m = MemGet(i);
-        if(address >= m->globalStartAddress && address < (m->globalStartAddress + m->globalSize))
-        {
-            *type = i;
-            return (address - m->globalStartAddress) / MMU_MASTER_TABLE_PAGE_SIZE;
-        }
-    }
-    return 0;
+void* _memGetPageAddress(uint32_t type, uint32_t pageNumber) {
+	Region* region = MemGet(type);
+	if (pageNumber >= region->totalPageCount) {
+		return NULL;
+	}
+	return (void*) (region->start + (pageNumber * MEM_PAGE_SIZE));
 }
 
-void* MemFindFreeIn(MemoryType type, uint32_t pageCount, Boolean align, Boolean reserve)
-{
-    //
-    // find pageCount unoccupied pages in a row
-    void* result = NULL;
-    MemMemory* m = MemGet(type);
-    uint32_t pagesFound = 0;
-    uint32_t i;
-
-    for (i = 0; i < m->pageTableTotalCount; i++)
-    {
-        if (!m->pageTableLookup[i].reserved && ((!align) || (pagesFound > 0) || ((i % pageCount) == 0)))
-        {
-            pagesFound++;
-            if (pagesFound == pageCount)
-            {
-                result = MemGetPageAddress(type, (i - pageCount) + 1);
-                if (reserve)
-                {
-                    MemReservePages(type, (i - pageCount) + 1, pageCount);
-                }
-                break;
-            }
-        }
-        else
-        {
-            pagesFound = 0;
-        }
-    }
-    return result;
-}
-
-void* MemFindFree(uint32_t pageCount, Boolean align, Boolean reserve)
-{
-    void* address;
-    MemoryType i;
-    for(i = 0; i < memory_count; i++)
-    {
-        address = MemFindFreeIn(i, pageCount, align, reserve);
-        if(address != NULL)
-        {
-            return address;
-        }
-    }
-    return NULL;
-}

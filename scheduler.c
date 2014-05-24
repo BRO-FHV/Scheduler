@@ -38,7 +38,6 @@ typedef struct ctx {
  */
 processID getNextProcess();
 processID getNextProcessID();
-void killThread(processID);
 void atomicStart();
 void atomicEnd();
 
@@ -72,10 +71,9 @@ void scheduler_startProcess(processFunc func) {
 
 		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
 				+ PROCESS_STACK_SIZE);
-		gThreads[newthreadID].masterTable =
-				(tablePointer) mmu_create_master_table();
+		// TODO gThreads[newthreadID].masterTable = (tablePointer) mmu_create_master_table();
 
-		mmu_init_process(&gThreads[newthreadID]);
+		// TODO mmu_init_process(&gThreads[newthreadID]);
 	}
 }
 
@@ -102,7 +100,7 @@ void scheduler_runNextProcess(Context* context) {
 		memcpy(context->reg, gThreads[gRunningThread].reg,
 				sizeof(gThreads[gRunningThread].reg));
 
-		mmu_switch_to_process(&gThreads[gRunningThread]);
+		// TODO mmu_switch_to_process(&gThreads[gRunningThread]);
 
 		uint32_t* x = malloc(sizeof(uint32_t));
 		*x = 0x00;

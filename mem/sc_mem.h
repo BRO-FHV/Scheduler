@@ -1,31 +1,46 @@
 /*
- * Driver: sc_mem.h
+ * Scheduler: sc_mem.h
  * Part of BRO Project, 2014 <<https://github.com/BRO-FHV>>
  *
- * Created on: May 07, 2014
+ * Created on: 24.05.2014
  * Description:
- * Physical Memory
+ * TODO
  */
 
-#ifndef MEM_GENERIC_H_
-#define MEM_GENERIC_H_
+#ifndef SC_MEM_H_
+#define SC_MEM_H_
 
-#include <basic.h>
-#include <context/mem.h>
+#include <inttypes.h>
+#include "basic.h"
 
-MemMemory* MemGet(MemoryType t);
-void MemInit(void);
+#define MEM_REGION_COUNT 5
+#define MEM_PAGE_SIZE 0x10000
 
-void MemReservePage(MemoryType type, uint32_t pageNumber);
-void MemReservePages(MemoryType type, uint32_t firstPageNumber, uint32_t pageCount);
+typedef struct pagetableLookup {
+	Boolean reserved;
+	Boolean occupied;
+} PageTableLookup;
 
-void MemFreePage(MemoryType type, uint32_t pageNumber);
-void MemFreePages(MemoryType type, uint32_t firstPageNumber, uint32_t pageCount);
+typedef struct region {
+	Boolean direct;
+	uint32_t start;
+	uint32_t length;
+	uint32_t end;
+	uint32_t totalPageCount;
+	uint32_t alocatedPageCount;
+	PageTableLookup* lookup;
+} Region;
 
-void* MemGetPageAddress(MemoryType type, uint32_t pageNumber);
-uint32_t MemGetPageNumber(MemoryType* type, uint32_t address);
+void MemInit();
+
+Region* MemGet(uint32_t type);
+
+void MemReservePages(uint32_t type, uint32_t firstPage, uint32_t pageCount);
+
+void MemReservePage(uint32_t type, uint32_t pageNumber);
 
 void* MemFindFree(uint32_t pageCount, Boolean align, Boolean reserve);
-void* MemFindFreeIn(MemoryType type, uint32_t pageCount, Boolean align, Boolean reserve);
 
-#endif /* MEM_H_ */
+void* MemFindFreeIn(uint32_t type, uint32_t pageCount, Boolean align, Boolean reserve);
+
+#endif /* SC_MEM_H_ */
