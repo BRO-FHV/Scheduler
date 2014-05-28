@@ -54,9 +54,9 @@ typedef struct ctx Context;
 /*
  * methods
  */
-void scheduler_runNextProcess(Context* context);
-void scheduler_startProcess(processFunc func);
+void SchedulerRunNextProcess(Context* context);
+void SchedulerStartProcess(processFunc func);
 Process* SchedulerCurrentProcess(void);
-void killThread(processID);
+void KillProcess(processID);
 
 #endif /* SCHEDULER_H_ */

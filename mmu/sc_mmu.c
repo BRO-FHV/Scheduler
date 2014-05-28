@@ -17,6 +17,7 @@
 #include "../scheduler.h"
 #include "../mem/sc_mem.h"
 
+// Defines of Table and Sections
 #define MMU_MASTER_TABLE_PAGE_COUNT 4
 #define MMU_MASTER_TABLE_SIZE MEM_PAGE_SIZE * MMU_MASTER_TABLE_PAGE_COUNT
 #define MMU_MAX_PROCESS_SPACE 0xC1200000
@@ -128,7 +129,7 @@ void MmuInitProcess(Process* process) {
 
 void MmuHandleDabt(Context* context) {
 	if (!_mmuHandleDataAbort()) {
-		scheduler_runNextProcess(context);
+		SchedulerRunNextProcess(context);
 	}
 
 	Process* process = SchedulerCurrentProcess();
@@ -184,7 +185,7 @@ Boolean _mmuHandleDataAbort() {
 			printf(
 					"illegal accessed address (0x%x) at position (0x%x) bye bye pid %i\n",
 					mmuAccessedAddress, 0x4711, currentProcess->id);
-			killThread(currentProcess->id);
+			KillProcess(currentProcess->id);
 			return FALSE;
 		}
 	}

@@ -47,7 +47,7 @@ void atomicEnd();
 processID gRunningThread = INVALID_ID;
 Process gThreads[MAX_PROCESSES];
 
-void scheduler_startProcess(processFunc func) {
+void SchedulerStartProcess(processFunc func) {
 	atomicStart();
 
 	processID newthreadID = getNextProcessID();
@@ -71,7 +71,7 @@ void scheduler_startProcess(processFunc func) {
 	}
 }
 
-void scheduler_runNextProcess(Context* context) {
+void SchedulerRunNextProcess(Context* context) {
 	atomicStart();
 
 	processID nextthreadID = getNextProcess();
@@ -103,7 +103,7 @@ void scheduler_runNextProcess(Context* context) {
 	atomicEnd();
 }
 
-void killThread(processID threadID) {
+void KillProcess(processID threadID) {
 	gThreads[threadID].state = FINISHED;
 	gThreads[threadID].func = NULL;
 }

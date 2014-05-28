@@ -47,6 +47,13 @@ void MemInit() {
 	_memInitOne(&regions[3]);
 }
 
+/**
+ * \brief Method init the memory of a defined region
+ * \param  Region
+ *
+ * \return None
+ *
+ */
 void _memInitOne(Region* region) {
 	// calculate length of region
 	region->length = region->end - region->start;
@@ -116,6 +123,13 @@ void* MemFindFreeIn(uint32_t type, uint32_t pageCount, Boolean align,
 	return result;
 }
 
+/**
+ * \brief Method to get a mem address out of a Page
+ * \param  Region
+ *
+ * \return None
+ *
+ */
 void* _memGetPageAddress(uint32_t type, uint32_t pageNumber) {
 	Region* region = MemGet(type);
 	if (pageNumber >= region->totalPageCount) {
