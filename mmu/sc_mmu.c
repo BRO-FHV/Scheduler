@@ -339,4 +339,32 @@ void _mmuCreateDirectMappingRange(tablePointer masterTable,
 		masterEntryIndex++;
 		currentTableEntry++;
 	}
+
+}
+
+
+void MmuCreateAddressMappingRange(tablePointer masterTable, uint32_t virtualStartAddress,
+        uint32_t physicalStartAddress, uint32_t physicalEndAddress, uint8_t domain)
+{
+    // create mappings in l2 table steps
+    uint32_t x;
+    uint32_t entryCountofL2;
+    // mark page as reserved
+    entryCountofL2 = (physicalEndAddress - physicalStartAddress) / MMU_L2_PAGE_SIZE;
+    // if there is still a little space, reserve one more
+    if (((physicalEndAddress - physicalStartAddress) % MMU_L2_PAGE_SIZE) > 0)
+    {
+        entryCountofL2++;
+    }
+
+    // map the addresses directly (as sections)
+    for(x = 0; x < entryCountofL2; x++)
+    {
+    	_mmuCreateAddressMapping(masterTable,
+                virtualStartAddress + (x * MMU_L2_PAGE_SIZE),
+                physicalStartAddress + (x* MMU_L2_PAGE_SIZE),
+                domain
+        );
+
+    }
 }

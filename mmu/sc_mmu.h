@@ -70,4 +70,15 @@ void MmuSwitchToProcess(Process* process);
  */
 void MmuHandleDabt(Context* context);
 
+/**
+ * \brief  Method needed for the elf loader
+ *
+ * \param  UserContext
+ *
+ * \return void
+ *
+ * \note
+ */
+void MmuCreateAddressMappingRange(tablePointer masterTable, uint32_t virtualStartAddress,uint32_t physicalStartAddress, uint32_t physicalEndAddress, uint8_t domain);
+
 #endif /* SC_MMU_C_ */
