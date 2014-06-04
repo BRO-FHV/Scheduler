@@ -146,5 +146,12 @@ void atomicEnd() {
 }
 
 Process* SchedulerCurrentProcess(void) {
+	if(gRunningThread==INVALID_ID)
+	{
+		return NULL;
+	}
+	else
+	{
 	return &gThreads[gRunningThread];
+	}
 }
