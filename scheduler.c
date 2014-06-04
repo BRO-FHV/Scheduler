@@ -138,7 +138,7 @@ processID getNextProcessID() {
 
 	return INVALID_ID;
 }
-void scheduler_add_process_from_elf_data(uint32_t length, uint8_t* data) {
+void loadProcessFromElf(uint32_t length, uint8_t* data) {
 	//irq_disable();
 	//  __disable_interrupts();
 
@@ -152,18 +152,18 @@ void scheduler_add_process_from_elf_data(uint32_t length, uint8_t* data) {
 		gThreads[newthreadID].id = newthreadID;
 		gThreads[newthreadID].state = READY;
 
-		processFunc func = 0;
-		loadelffile(&gThreads[newthreadID], length, data, (uint32_t*)(&func));
-
-		gThreads[newthreadID].func = func;
-		gThreads[newthreadID].pc = (programCounter) func;
-		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
-		gThreads[newthreadID].cpsr = 0x00000110;
-
 		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
 				+ PROCESS_STACK_SIZE);
 		gThreads[newthreadID].masterTable =
 				(tablePointer) MmuCreateMasterTable();
+
+		uint32_t func = 0;
+		loadelffile(&gThreads[newthreadID], length, data, &func);
+
+		gThreads[newthreadID].func = (processFunc)func;
+		gThreads[newthreadID].pc = (programCounter) func;
+		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
+		gThreads[newthreadID].cpsr = 0x00000110;
 
 		MmuInitProcess(&gThreads[newthreadID]);
 	}

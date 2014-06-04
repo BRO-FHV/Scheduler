@@ -58,11 +58,9 @@ void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* ent
 		*entryPoint = header->entry;
 		for (i = 0; i < header->phnum; i++) {
 			// copy the header to prevent alignment problems
-			memcpy(&entry,
-					(void*) (((uint32_t) header) + header->phoff
-							+ (header->phentsize * i)),
-					sizeof(elf_program_header_entry_t));
-			if (entry.type == ELF_PT_LOAD) {
+			memcpy(&entry, (void*) (((uint32_t) header) + header->phoff	+ (header->phentsize * i)),	sizeof(elf_program_header_entry_t));
+			if (entry.type == ELF_PT_LOAD)
+			{
 				// allocate pages needed for this program header
 				pageCount = entry.filesz / MMU_MASTER_TABLE_SIZE;
 				if ((entry.filesz % MMU_MASTER_TABLE_SIZE) > 0)
@@ -70,14 +68,10 @@ void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* ent
 				processMemory = MemFindFree(pageCount, FALSE, TRUE);
 
 				// copy the plain data of the program header
-				memcpy(processMemory,
-						(void*) ((uint32_t) header + entry.offset),
-						entry.filesz);
+				memcpy(processMemory, (void*) ((uint32_t) header + entry.offset), entry.filesz);
 
 				// map the virtual addressses of the new allocated program header
-				MmuCreateAddressMappingRange(process->masterTable,
-						(uint32_t) entry.vaddr, (uint32_t) processMemory,
-						(uint32_t) processMemory + entry.filesz, 0);
+				MmuCreateAddressMappingRange(process->masterTable, (uint32_t) entry.vaddr, (uint32_t) processMemory, (uint32_t) processMemory + entry.filesz, 0);
 			}
 		}
 	}

@@ -67,7 +67,7 @@ typedef struct
     uint32_t pad;			// reserved (zero)
     uint32_t pad2;			// reserved (zero)
     uint8_t nident;
-}  elf_ident_header_t;
+} __attribute__((__packed__)) elf_ident_header_t;
 
 typedef struct
 {
@@ -85,7 +85,7 @@ typedef struct
     elf_half_t shentsize;		// size of one section-header entry
     elf_half_t shnum;			// number of entries in the section-header. zero if no section-header exists
     elf_half_t shstrndx;		// tells us which entry of the section-header is linked to the String-Table
-} elf_header_t;
+} __attribute__((__packed__)) elf_header_t;
 
 typedef struct
 {
@@ -97,7 +97,7 @@ typedef struct
     elf_word_t memsz;    // size of the segment in memory
     elf_word_t flags;    // flags (combination of constants above)
     elf_word_t align;    // alignment. if zero or one, then no alignment is needed, otherwise the alignment has to be a power of two
-}  elf_program_header_entry_t;
+} __attribute__((__packed__)) elf_program_header_entry_t;
 
 #define ELF_PT_NULL 0x00          	// invalid segment
 #define ELF_PT_LOAD 0x01          	// loadable segment
