@@ -96,9 +96,6 @@ void SchedulerRunNextProcess(Context* context) {
 				sizeof(gThreads[gRunningThread].reg));
 
 		MmuSwitchToProcess(&gThreads[gRunningThread]);
-
-		uint32_t* x = malloc(sizeof(uint32_t));
-		*x = 0x00;
 	}
 
 	atomicEnd();
@@ -156,6 +153,7 @@ void loadProcessFromElf(uint32_t length, uint8_t* data) {
 		gThreads[newthreadID].masterTable =
 				(tablePointer) MmuCreateMasterTable();
 
+		MmuInitProcess(&gThreads[newthreadID]);
 		uint32_t func = 0;
 		loadelffile(&gThreads[newthreadID], length, data, &func);
 
@@ -164,7 +162,7 @@ void loadProcessFromElf(uint32_t length, uint8_t* data) {
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
 
-		MmuInitProcess(&gThreads[newthreadID]);
+
 	}
 
 	//  irq_enable();

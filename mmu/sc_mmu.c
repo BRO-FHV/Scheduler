@@ -286,7 +286,7 @@ tablePointer _mmuGetOrCreateL2Table(tablePointer masterTable,
 	tablePointer l2Table;
 	uint32_t masterTableEntryValue;
 
-	if (masterTableEntry < MMU_MASTER_TABLE_SIZE) {
+	if (masterTableEntry < MEM_PAGE_SIZE) {
 		// we lookup the entry in the master table
 		masterTableEntryValue = *(masterTable + masterTableEntry);
 
