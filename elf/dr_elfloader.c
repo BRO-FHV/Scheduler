@@ -21,7 +21,7 @@
 #include "../scheduler.h"
 #include "../mem/sc_mem.h"
 
-tBoolean elf_check(elf_header_t* header) {
+Boolean elf_check(elf_header_t* header) {
 	if (header->ident.magic != ELF_MAGIC) {
 		return FALSE;
 	}
