@@ -20,6 +20,7 @@
 #include "mem/sc_mem.h"
 #include "elf/elf_loader.h"
 
+
 /*
  * Defines
  */
@@ -64,10 +65,8 @@ void SchedulerStartProcess(processFunc func) {
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
 
-		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
-				+ PROCESS_STACK_SIZE);
-		gThreads[newthreadID].masterTable =
-				(tablePointer) MmuCreateMasterTable();
+		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START + PROCESS_STACK_SIZE);
+		gThreads[newthreadID].masterTable = (tablePointer) MmuCreateMasterTable();
 
 		MmuInitProcess(&gThreads[newthreadID]);
 	}
@@ -180,5 +179,12 @@ void atomicEnd() {
 }
 
 Process* SchedulerCurrentProcess(void) {
+	if(gRunningThread==INVALID_ID)
+	{
+		return NULL;
+	}
+	else
+	{
 	return &gThreads[gRunningThread];
+	}
 }
