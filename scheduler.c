@@ -15,34 +15,15 @@
 #include <stdlib.h>
 #include <cpu/hw_cpu.h>
 #include "scheduler.h"
+#include "context.h"
+#include "mmu/sc_mmu.h"
+#include "mem/sc_mem.h"
 
 /*
  * Defines
  */
 #define THREAD_SIZE		32
 #define INVALID_ID		-1
-
-/*
- * Process states
- */
-typedef enum {
-	FINISHED = 0, WAITING, READY, RUNNING, BLOCKED
-} processState;
-
-/*
- * Process structure
- */
-typedef struct {
-	processID id;
-	processState state;
-	processFunc func;
-	programCounter pc;
-	registerCache reg[15];
-
-	/* Control Process Status Register */
-	cpsrValue cpsr;
-
-} process;
 
 typedef struct ctx {
 	/* Control Process Status Register */
@@ -57,7 +38,6 @@ typedef struct ctx {
  */
 processID getNextProcess();
 processID getNextProcessID();
-void killThread(processID);
 void atomicStart();
 void atomicEnd();
 
@@ -65,9 +45,9 @@ void atomicEnd();
  * Constants
  */
 processID gRunningThread = INVALID_ID;
-process gThreads[MAX_PROCESSES];
+Process gThreads[MAX_PROCESSES];
 
-void scheduler_startProcess(processFunc func) {
+void SchedulerStartProcess(processFunc func) {
 	atomicStart();
 
 	processID newthreadID = getNextProcessID();
@@ -81,18 +61,17 @@ void scheduler_startProcess(processFunc func) {
 
 		gThreads[newthreadID].pc = (programCounter) func;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
-		gThreads[newthreadID].cpsr = 0x60000110;
+		gThreads[newthreadID].cpsr = 0x00000110;
 
-		// TODO: need a valid stack-pointer
-		void* stackPtr = (void*) malloc(1024);
-		memset(stackPtr, 'a', 1024);
+		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
+				+ PROCESS_STACK_SIZE);
+		gThreads[newthreadID].masterTable = (tablePointer) MmuCreateMasterTable();
 
-		gThreads[newthreadID].reg[13] = (uint32_t) stackPtr;
-
+		MmuInitProcess(&gThreads[newthreadID]);
 	}
 }
 
-void scheduler_runNextProcess(Context* context) {
+void SchedulerRunNextProcess(Context* context) {
 	atomicStart();
 
 	processID nextthreadID = getNextProcess();
@@ -115,12 +94,16 @@ void scheduler_runNextProcess(Context* context) {
 		memcpy(context->reg, gThreads[gRunningThread].reg,
 				sizeof(gThreads[gRunningThread].reg));
 
+		MmuSwitchToProcess(&gThreads[gRunningThread]);
+
+		uint32_t* x = malloc(sizeof(uint32_t));
+		*x = 0x00;
 	}
 
 	atomicEnd();
 }
 
-void killThread(processID threadID) {
+void KillProcess(processID threadID) {
 	gThreads[threadID].state = FINISHED;
 	gThreads[threadID].func = NULL;
 }
@@ -160,4 +143,8 @@ void atomicStart() {
 
 void atomicEnd() {
 	//CPUirqe();
+}
+
+Process* SchedulerCurrentProcess(void) {
+	return &gThreads[gRunningThread];
 }
