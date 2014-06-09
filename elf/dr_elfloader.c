@@ -49,6 +49,10 @@ Boolean elf_check(elf_header_t* header) {
 	return TRUE;
 }
 
+
+
+
+
 void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* entryPoint, uint32_t* stackPointerAddress) {
 	void* processMemory;
 
@@ -73,19 +77,33 @@ void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* ent
 			memcpy(&entry, (void*) (((uint32_t) header) + header->phoff	+ (header->phentsize * i)),	sizeof(elf_program_header_entry_t));
 			if (entry.type == ELF_PT_LOAD)
 			{
-				// allocate pages needed for this program header
-				pageCount = entry.filesz / MEM_PAGE_SIZE;
-				if ((entry.filesz % MEM_PAGE_SIZE) > 0)
-					pageCount++;
-				processMemory = MemFindFree(pageCount, FALSE, TRUE);
-				//if(processMemory != NULL)
-				//{
-					// copy the plain data of the program header
-					memcpy(processMemory, (void*) ((uint32_t) header + entry.offset), entry.filesz);
 
-					// map the virtual addressses of the new allocated program header
-					MmuCreateAddressMappingRange(process->masterTable, (uint32_t) entry.vaddr, (uint32_t) processMemory, (uint32_t) processMemory + entry.filesz, 0);
-				//}
+				uint32_t memsize = entry.memsz; // Size in memory
+				uint32_t filesize = entry.filesz; // Size in file
+				uint32_t mempos = entry.vaddr; // Offset in memory
+				uint32_t filepos = entry.offset; // Offset in file
+
+
+				// allocate pages needed for this program header
+				pageCount = entry.memsz / MEM_PAGE_SIZE;
+				if ((entry.memsz % MEM_PAGE_SIZE) > 0)
+					pageCount++;
+
+				processMemory = MemFindFree(pageCount, FALSE, TRUE);
+
+
+				// copy the plain data of the program header
+				memcpy(processMemory, (void*) ((uint32_t) header + entry.offset), entry.filesz);
+
+				//fill  up wih 0
+				memset(processMemory +  entry.filesz, 0, memsize - filesize);
+
+				// map the virtual addressses of the new allocated program header
+				MmuCreateAddressMappingRange(process->masterTable, (uint32_t) entry.vaddr, (uint32_t) processMemory, (uint32_t) processMemory + entry.memsz, 0);
+
+
+
+
 			}
 		}
 	}
