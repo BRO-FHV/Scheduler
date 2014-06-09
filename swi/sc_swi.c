@@ -77,8 +77,11 @@ void SwiForward(SyscallArgData* data) {
 	case SYSCALL_LED_INIT_REGISTER:
 		SwiLedInitRegister();
 		break;
-		case SYSCALL_LEDS_INIT:
+	case SYSCALL_LEDS_INIT:
 		SwiLedsInit();
+		break;
+	case SYSCALL_MMU_INIT:
+		SwiMmuInit();
 		break;
 
 	default:

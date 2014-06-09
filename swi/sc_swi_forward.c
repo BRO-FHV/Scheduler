@@ -128,3 +128,8 @@ void SwiLedInit3(void) {
 	LedInit3();
 }
 
+void SwiMmuInit(void){
+
+	MmuInit();
+}
+

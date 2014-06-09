@@ -37,4 +37,7 @@ void SwiGPIODirModeSet(unsigned int baseAdd,unsigned int pinNumber,unsigned int 
 void SwiGPIOPinWrite(unsigned int baseAdd, unsigned int pinNumber,unsigned int pinValue);
 unsigned int SwiGPIOPinRead(unsigned int baseAdd, unsigned int pinNumber);
 
+
+void SwiMmuInit(void);
+
 #endif /* DR_SWI_FORWARD_H_ */
