@@ -15,4 +15,29 @@
 
 void SwiStdioPrintf(const char* text);
 
+void SwiLed0On(void);
+void SwiLed1On(void);
+void SwiLed2On(void);
+void SwiLed3On(void);
+
+void SwiLed0Off(void);
+void SwiLed1Off(void);
+void SwiLed2Off(void);
+void SwiLed3Off(void);
+
+void SwiLedInit0(void);
+void SwiLedInit1(void);
+void SwiLedInit2(void);
+void SwiLedInit3(void);
+
+void SwiLedInitRegister(void);
+void SwiLedsInit(void);
+
+void SwiGPIODirModeSet(unsigned int baseAdd,unsigned int pinNumber,unsigned int pinDirection);
+void SwiGPIOPinWrite(unsigned int baseAdd, unsigned int pinNumber,unsigned int pinValue);
+unsigned int SwiGPIOPinRead(unsigned int baseAdd, unsigned int pinNumber);
+
+
+void SwiMmuInit(void);
+
 #endif /* DR_SWI_FORWARD_H_ */
