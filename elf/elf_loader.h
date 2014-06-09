@@ -11,6 +11,6 @@
 #define ELF_LOADER_H_
 
 
-void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t*  entryPoint);
+void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* entryPoint, uint32_t* stackPointerAddress);
 
 #endif /* ELF_LOADER_H_ */

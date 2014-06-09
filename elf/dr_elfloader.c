@@ -21,6 +21,14 @@
 #include "../scheduler.h"
 #include "../mem/sc_mem.h"
 
+
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+
+
+uint32_t getVirtualAddressOfSection( const char* sectionName, elf_header_t* elfHeader, uint8_t* dataBuffer );
+
 Boolean elf_check(elf_header_t* header) {
 	if (header->ident.magic != ELF_MAGIC) {
 		return FALSE;
@@ -41,7 +49,7 @@ Boolean elf_check(elf_header_t* header) {
 	return TRUE;
 }
 
-void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* entryPoint) {
+void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* entryPoint, uint32_t* stackPointerAddress) {
 	void* processMemory;
 
 	uint32_t pageCount;
@@ -51,6 +59,10 @@ void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* ent
 	uint32_t i;
 
 	header = (elf_header_t*) data;
+
+	// need to know the stack-pointer to assign it to R13 in initialization
+	*stackPointerAddress = getVirtualAddressOfSection( ".stack", header, data );
+
 
 	if (elf_check(header)) {
 		//
@@ -77,5 +89,28 @@ void loadelffile(Process* process, uint32_t length, uint8_t* data, uint32_t* ent
 			}
 		}
 	}
+}
+
+uint32_t getVirtualAddressOfSection( const char* sectionName, elf_header_t* elfHeader, uint8_t* dataBuffer )
+{
+	uint32_t i = 0;
+
+	SECTION_HEADER* stringTableEntry = ( SECTION_HEADER* ) &dataBuffer[ elfHeader->shoff + ( elfHeader->shstrndx * elfHeader->shentsize ) ];
+	const char* stringTable = stringTable = ( const char* ) &dataBuffer[ stringTableEntry->sh_offset ];
+
+	for ( i = 0; i < elfHeader->shnum; ++i )
+	{
+		SECTION_HEADER* sectionHeader = ( SECTION_HEADER* ) &dataBuffer[ elfHeader->shoff + ( i * elfHeader->shentsize ) ];
+
+		if ( sectionHeader->sh_name )
+		{
+			if ( 0 == strcasecmp( &stringTable[ sectionHeader->sh_name ], sectionName ) )
+			{
+				return sectionHeader->sh_addr;
+			}
+		}
+	}
+
+	return 0;
 }
 

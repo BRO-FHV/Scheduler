@@ -99,6 +99,20 @@ typedef struct
     elf_word_t align;    // alignment. if zero or one, then no alignment is needed, otherwise the alignment has to be a power of two
 } __attribute__((__packed__)) elf_program_header_entry_t;
 
+typedef struct
+{
+	uint32_t sh_name;                	/* Section name (string tbl index) */
+	uint32_t sh_type;                	/* Section type */
+	uint32_t sh_flags;              	/* Section flags */
+	uint32_t sh_addr;           		/* Section virtual addr at execution */
+	uint32_t sh_offset;             	/* Section file offset */
+	uint32_t sh_size;                	/* Section size in bytes */
+	uint32_t sh_link;                	/* Link to another section */
+	uint32_t sh_info;                	/* Additional section information */
+	uint32_t sh_addralign;           	/* Section alignment */
+	uint32_t sh_entsize;             	/* Entry size if section holds table */
+}__attribute__((__packed__))  SECTION_HEADER;
+
 #define ELF_PT_NULL 0x00          	// invalid segment
 #define ELF_PT_LOAD 0x01          	// loadable segment
 #define ELF_PT_DYNAMIC 0x02       	// dynamic segment

@@ -35,6 +35,7 @@ typedef struct ctx {
 
 } Context;
 
+
 /*
  * Methods
  */
@@ -148,17 +149,20 @@ void loadProcessFromElf(uint32_t length, uint8_t* data) {
 		gThreads[newthreadID].id = newthreadID;
 		gThreads[newthreadID].state = READY;
 
-		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
-				+ PROCESS_STACK_SIZE);
 		gThreads[newthreadID].masterTable =
 				(tablePointer) MmuCreateMasterTable();
 
 		MmuInitProcess(&gThreads[newthreadID]);
-		uint32_t func = 0;
-		loadelffile(&gThreads[newthreadID], length, data, &func);
+		uint32_t entry = 0;
+		uint32_t stackPointerAddress  = 0;
+		loadelffile(&gThreads[newthreadID], length, data, &entry, &stackPointerAddress);
 
-		gThreads[newthreadID].func = (processFunc)func;
-		gThreads[newthreadID].pc = (programCounter) func;
+
+
+		gThreads[newthreadID].reg[13] = (void*) stackPointerAddress;
+
+		gThreads[newthreadID].func = (processFunc)entry;
+		gThreads[newthreadID].pc = (programCounter) entry;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
 
