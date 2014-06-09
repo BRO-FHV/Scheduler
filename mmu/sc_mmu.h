@@ -10,8 +10,10 @@
 #ifndef SC_MMU_C_
 #define SC_MMU_C_
 
-#include "../scheduler.h"
+#define MMU_MASTER_TABLE_PAGE_COUNT 4
+#define MMU_MASTER_TABLE_SIZE MEM_PAGE_SIZE * MMU_MASTER_TABLE_PAGE_COUNT
 
+#include "../scheduler.h"
 
 /**
  * \brief  Used to initialize the MMU

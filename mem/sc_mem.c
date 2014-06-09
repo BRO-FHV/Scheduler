@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "sc_mem.h"
+#include "basic.h"
 
 Region regions[MEM_REGION_COUNT];
 

@@ -18,8 +18,6 @@
 #include "../mem/sc_mem.h"
 
 // Defines of Table and Sections
-#define MMU_MASTER_TABLE_PAGE_COUNT 4
-#define MMU_MASTER_TABLE_SIZE MEM_PAGE_SIZE * MMU_MASTER_TABLE_PAGE_COUNT
 #define MMU_MAX_PROCESS_SPACE 0xC1200000
 #define MMU_SECTION_ENTRY_SIZE 0x00100000
 #define MMU_SECTION_ENTRY_KERNEL_INITIAL 0x00000C02
@@ -257,8 +255,9 @@ void _mmuCreatePageMapping(tablePointer masterTable, uint32_t virtualAddress,
 	printf("create mapped page (PM: %p, VM: %x)\n", physicalAddress, virtualAddress);
 }
 
-void _mmuCreateAddressMapping(tablePointer masterTable, uint32_t virtualAddress,
-		uint32_t physicalAddress, uint8_t domain) {
+
+void _mmuCreateAddressMapping(tablePointer masterTable, uint32_t virtualAddress, uint32_t physicalAddress, uint8_t domain) {
+
 	// For an actual mapping we need to get the L2 table
 	tablePointer l2Table;
 	uint32_t l2EntryNumber;
@@ -269,8 +268,7 @@ void _mmuCreateAddressMapping(tablePointer masterTable, uint32_t virtualAddress,
 
 	if (l2Table != NULL) {
 		// now we build the l2 table entry
-		l2EntryValue = MMU_L2_TABLE_ENTRY_TO_PAGE(physicalAddress)
-				| MMU_L2_INITIAL_VALUE;
+		l2EntryValue = MMU_L2_TABLE_ENTRY_TO_PAGE(physicalAddress) | MMU_L2_INITIAL_VALUE;
 
 		l2EntryValue |= (0x03 << 4); // Set all Access Bits
 		l2EntryValue |= (0x01 << 9);
@@ -288,7 +286,7 @@ tablePointer _mmuGetOrCreateL2Table(tablePointer masterTable,
 	tablePointer l2Table;
 	uint32_t masterTableEntryValue;
 
-	if (masterTableEntry < MMU_MASTER_TABLE_SIZE) {
+	if (masterTableEntry < MEM_PAGE_SIZE) {
 		// we lookup the entry in the master table
 		masterTableEntryValue = *(masterTable + masterTableEntry);
 
@@ -313,19 +311,18 @@ tablePointer _mmuGetOrCreateL2Table(tablePointer masterTable,
 	return l2Table;
 }
 
-void _mmuCreateDirectMappingRange(tablePointer masterTable,
-		uint32_t physicalStartAddress, uint32_t physicalEndAddress,
-		uint8_t domain) {
+
+void _mmuCreateDirectMappingRange(tablePointer masterTable,	uint32_t physicalStartAddress, uint32_t physicalEndAddress,	uint8_t domain) {
 	uint32_t i;
 	uint32_t masterEntryCount;
 	uint32_t masterEntryIndex;
 	tablePointer currentTableEntry;
 	// mark page as reserved
-	masterEntryCount = (physicalEndAddress - physicalStartAddress)
-			/ MMU_SECTION_ENTRY_SIZE;
+	masterEntryCount = (physicalEndAddress - physicalStartAddress) / MMU_SECTION_ENTRY_SIZE;
+
 	// if there is still a little space, reserve one more
-	if (((physicalEndAddress - physicalStartAddress) % MMU_SECTION_ENTRY_SIZE)
-			> 0) {
+	if (((physicalEndAddress - physicalStartAddress) % MMU_SECTION_ENTRY_SIZE) > 0)
+	{
 		masterEntryCount++;
 	}
 
@@ -333,18 +330,14 @@ void _mmuCreateDirectMappingRange(tablePointer masterTable,
 	masterEntryIndex = MMU_VIRTUAL_TO_MASTER_TABLE_ENTRY(physicalStartAddress);
 	currentTableEntry = masterTable + masterEntryIndex;
 	for (i = 0; i < masterEntryCount; i++) {
-		*currentTableEntry = (masterEntryIndex << 20)
-				| MMU_SECTION_ENTRY_KERNEL_INITIAL;
-
+		*currentTableEntry = (masterEntryIndex << 20) | MMU_SECTION_ENTRY_KERNEL_INITIAL;
 		masterEntryIndex++;
 		currentTableEntry++;
 	}
 
 }
 
-
-void MmuCreateAddressMappingRange(tablePointer masterTable, uint32_t virtualStartAddress,
-        uint32_t physicalStartAddress, uint32_t physicalEndAddress, uint8_t domain)
+void MmuCreateAddressMappingRange(tablePointer masterTable, uint32_t virtualStartAddress, uint32_t physicalStartAddress, uint32_t physicalEndAddress, uint8_t domain)
 {
     // create mappings in l2 table steps
     uint32_t x;
@@ -360,11 +353,6 @@ void MmuCreateAddressMappingRange(tablePointer masterTable, uint32_t virtualStar
     // map the addresses directly (as sections)
     for(x = 0; x < entryCountofL2; x++)
     {
-    	_mmuCreateAddressMapping(masterTable,
-                virtualStartAddress + (x * MMU_L2_PAGE_SIZE),
-                physicalStartAddress + (x* MMU_L2_PAGE_SIZE),
-                domain
-        );
-
+    	_mmuCreateAddressMapping(masterTable, virtualStartAddress + (x * MMU_L2_PAGE_SIZE), physicalStartAddress + (x* MMU_L2_PAGE_SIZE), domain);
     }
 }

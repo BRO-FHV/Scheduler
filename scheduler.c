@@ -18,6 +18,8 @@
 #include "context.h"
 #include "mmu/sc_mmu.h"
 #include "mem/sc_mem.h"
+#include "elf/elf_loader.h"
+
 
 /*
  * Defines
@@ -33,6 +35,7 @@ typedef struct ctx {
 
 } Context;
 
+
 /*
  * Methods
  */
@@ -40,7 +43,7 @@ processID getNextProcess();
 processID getNextProcessID();
 void atomicStart();
 void atomicEnd();
-
+void scheduler_add_process_from_elf_data(uint32_t length, uint8_t* data);
 /*
  * Constants
  */
@@ -63,8 +66,7 @@ void SchedulerStartProcess(processFunc func) {
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
 
-		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START
-				+ PROCESS_STACK_SIZE);
+		gThreads[newthreadID].reg[13] = (void*) (PROCESS_STACK_START + PROCESS_STACK_SIZE);
 		gThreads[newthreadID].masterTable = (tablePointer) MmuCreateMasterTable();
 
 		MmuInitProcess(&gThreads[newthreadID]);
@@ -95,9 +97,6 @@ void SchedulerRunNextProcess(Context* context) {
 				sizeof(gThreads[gRunningThread].reg));
 
 		MmuSwitchToProcess(&gThreads[gRunningThread]);
-
-		uint32_t* x = malloc(sizeof(uint32_t));
-		*x = 0x00;
 	}
 
 	atomicEnd();
@@ -136,7 +135,43 @@ processID getNextProcessID() {
 
 	return INVALID_ID;
 }
+void loadProcessFromElf(uint32_t length, uint8_t* data) {
+	//irq_disable();
+	//  __disable_interrupts();
 
+	atomicStart();
+
+	processID newthreadID = getNextProcessID();
+
+	if (INVALID_ID == newthreadID) {
+		atomicEnd();
+	} else {
+		gThreads[newthreadID].id = newthreadID;
+		gThreads[newthreadID].state = READY;
+
+		gThreads[newthreadID].masterTable =
+				(tablePointer) MmuCreateMasterTable();
+
+		MmuInitProcess(&gThreads[newthreadID]);
+		uint32_t entry = 0;
+		uint32_t stackPointerAddress  = 0;
+		loadelffile(&gThreads[newthreadID], length, data, &entry, &stackPointerAddress);
+
+
+
+		gThreads[newthreadID].reg[13] = (void*) stackPointerAddress;
+
+		gThreads[newthreadID].func = (processFunc)entry;
+		gThreads[newthreadID].pc = (programCounter) entry;
+		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
+		gThreads[newthreadID].cpsr = 0x00000110;
+
+
+	}
+
+	//  irq_enable();
+	//  __enable_interrupts();
+}
 void atomicStart() {
 	//CPUirqd();
 }
@@ -146,5 +181,12 @@ void atomicEnd() {
 }
 
 Process* SchedulerCurrentProcess(void) {
+	if(gRunningThread==INVALID_ID)
+	{
+		return NULL;
+	}
+	else
+	{
 	return &gThreads[gRunningThread];
+	}
 }

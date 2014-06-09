@@ -58,5 +58,5 @@ void SchedulerRunNextProcess(Context* context);
 void SchedulerStartProcess(processFunc func);
 Process* SchedulerCurrentProcess(void);
 void KillProcess(processID);
-
+void loadProcessFromElf(uint32_t length, uint8_t* data);
 #endif /* SCHEDULER_H_ */
