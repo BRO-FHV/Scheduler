@@ -187,6 +187,6 @@ Process* SchedulerCurrentProcess(void) {
 	}
 	else
 	{
-	return &gThreads[gRunningThread];
+		return &gThreads[gRunningThread];
 	}
 }
