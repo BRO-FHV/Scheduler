@@ -31,8 +31,14 @@
 // L2 Pointer in the master table
 #define MMU_VIRTUAL_TO_MASTER_TABLE_ENTRY(v) ((v) >> 20)
 #define MMU_MASTER_TABLE_ENTRY_TO_L2_ADDRESS(e) ( (e) & ~0x7FF)
+
+//#define MMU_L2_TABLE_ENTRY_TO_PAGE(p) (((p) >> 12) << 12)  // the upper 20 bits of the physical address represent the page address
+//#define MMU_VIRTUAL_TO_L2_TABLE_ENTRY(v) ( (v >> 12) & 0xFF)
+
 #define MMU_L2_TABLE_ENTRY_TO_PAGE(p) (((p) >> 12) << 12)  // the upper 20 bits of the physical address represent the page address
 #define MMU_VIRTUAL_TO_L2_TABLE_ENTRY(v) ( (v >> 12) & 0xFF)
+
+
 #define MMU_MASTER_TABLE_TO_L2_INITIAL_VALUE 0x00000001
 
 // L2 Table
@@ -93,7 +99,7 @@ void MmuInit() {
 		*currentTableEntry = i | MMU_SECTION_ENTRY_KERNEL_INITIAL;
 		currentTableEntry++;
 	}
-	*currentTableEntry = 0xFFF00000 | MMU_SECTION_ENTRY_KERNEL_INITIAL; // don't miss the last one
+	//*currentTableEntry = 0xFFF00000 | MMU_SECTION_ENTRY_KERNEL_INITIAL; // don't miss the last one
 
 	// activate mmu
 	_mmuSetKernelTable(kernelMasterTable);
@@ -286,7 +292,7 @@ tablePointer _mmuGetOrCreateL2Table(tablePointer masterTable,
 	tablePointer l2Table;
 	uint32_t masterTableEntryValue;
 
-	if (masterTableEntry < MEM_PAGE_SIZE) {
+	if (masterTableEntry < MMU_MASTER_TABLE_SIZE) {
 		// we lookup the entry in the master table
 		masterTableEntryValue = *(masterTable + masterTableEntry);
 
