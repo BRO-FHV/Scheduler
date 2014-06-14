@@ -14,6 +14,7 @@
  * Defines
  */
 #define MAX_PROCESSES		32
+#define REG_COUNT			15
 
 /*
  * Typedefs
@@ -40,7 +41,7 @@ typedef struct {
 	processState state;
 	processFunc func;
 	programCounter pc;
-	registerCache reg[15];
+	registerCache reg[REG_COUNT];
 
 	/* Control Process Status Register */
 	cpsrValue cpsr;

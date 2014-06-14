@@ -31,7 +31,7 @@ typedef struct ctx {
 	/* Control Process Status Register */
 	cpsrValue cpsr;
 	programCounter pc;
-	registerCache reg[15];
+	registerCache reg[REG_COUNT];
 
 } Context;
 
@@ -83,20 +83,22 @@ void SchedulerRunNextProcess(Context* context) {
 			gThreads[gRunningThread].state = READY;
 			gThreads[gRunningThread].pc = context->pc;
 			gThreads[gRunningThread].cpsr = context->cpsr;
-			memcpy(gThreads[gRunningThread].reg, context->reg,
-					sizeof(gThreads[gRunningThread].reg));
+			memcpy(gThreads[gRunningThread].reg, context->reg, REG_COUNT);
 
 		}
+
+		printf("next process: %d \n", nextthreadID);
 
 		gRunningThread = nextthreadID;
 		gThreads[gRunningThread].state = RUNNING;
 		context->pc = gThreads[gRunningThread].pc;
 		context->cpsr = gThreads[gRunningThread].cpsr;
 
-		memcpy(context->reg, gThreads[gRunningThread].reg,
-				sizeof(gThreads[gRunningThread].reg));
+		memcpy(context->reg, gThreads[gRunningThread].reg, REG_COUNT);
 
 		MmuSwitchToProcess(&gThreads[gRunningThread]);
+	}else{
+		printf("current process: %d \n", gRunningThread);
 	}
 
 	atomicEnd();
