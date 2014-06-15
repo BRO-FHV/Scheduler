@@ -157,11 +157,11 @@ void loadProcessFromElf(uint32_t length, uint8_t* data) {
 		uint32_t stackPointerAddress  = 0;
 		loadelffile(&gThreads[newthreadID], length, data, &entry, &stackPointerAddress);
 
-
-
 		gThreads[newthreadID].reg[13] = (void*) stackPointerAddress;
 
-		gThreads[newthreadID].func = (processFunc)entry;
+		//gThreads[newthreadID].func = (processFunc)entry;
+		gThreads[newthreadID].func=(processFunc)0x81000034;
+
 		gThreads[newthreadID].pc = (programCounter) entry;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
