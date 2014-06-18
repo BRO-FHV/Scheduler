@@ -13,7 +13,7 @@
 #include <inttypes.h>
 #include "basic.h"
 
-#define MEM_REGION_COUNT 4
+#define MEM_REGION_COUNT 5
 #define MEM_PAGE_SIZE 0x10000
 
 typedef struct pagetableLookup {

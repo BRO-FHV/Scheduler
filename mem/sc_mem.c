@@ -34,7 +34,6 @@ void MemInit() {
 	regions[1].end = 0x7FFFFFFF;
 	_memInitOne(&regions[1]);
 
-	// TODO get from linker script
 	// SDRAM: Kernel
 	regions[2].direct = TRUE;
 	regions[2].start = 0x80000000;
@@ -46,6 +45,12 @@ void MemInit() {
 	regions[3].start = 0x81000000;
 	regions[3].end = 0xBFFFFFFF;
 	_memInitOne(&regions[3]);
+
+	// SDRAM: Process Pages
+	regions[4].direct = TRUE;
+	regions[4].start = 0x402F0400;
+	regions[4].end = 0x402FFFFF;
+	_memInitOne(&regions[4]);
 }
 
 /**
