@@ -9,6 +9,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <basic.h>
+#include <eth/dr_eth_udp.h>
 
 #ifndef DR_SWI_FORWARD_H_
 #define DR_SWI_FORWARD_H_
@@ -39,5 +42,11 @@ unsigned int SwiGPIOPinRead(unsigned int baseAdd, unsigned int pinNumber);
 
 
 void SwiMmuInit(void);
+
+
+void SwiUdpInit(uint32_t port);
+upd_package_t* SwiUdpGetData(uint32_t port);
+void SwiUdpSendData(uint8_t receiver[],uint32_t port,uint8_t* data, uint32_t datalen);
+tBoolean SwiUdpHasData(uint32_t port);
 
 #endif /* DR_SWI_FORWARD_H_ */

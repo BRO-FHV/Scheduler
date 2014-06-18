@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <led/dr_led.h>
 #include <gpio/dr_gpio.h>
+#include <eth/dr_eth_udp.h>
 
 void SwiStdioPrintf(const char* text) {
 	printf(text);
@@ -131,5 +132,24 @@ void SwiLedInit3(void) {
 void SwiMmuInit(void){
 
 	MmuInit();
+}
+
+
+
+void SwiUdpInit(uint32_t port)
+{
+
+}
+upd_package_t* SwiUdpGetData(uint32_t port)
+{
+
+}
+void SwiUdpSendData(uint8_t receiver[],uint32_t port,uint8_t* data, uint32_t datalen){
+
+
+}
+tBoolean SwiUdpHasData(uint32_t port){
+
+
 }
 

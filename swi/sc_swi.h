@@ -9,10 +9,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <basic.h>
 
 #ifndef DR_SWI_H_
 #define DR_SWI_H_
 
 void SwiForward(SyscallArgData* data);
+
 
 #endif /* DR_SWI_H_ */
