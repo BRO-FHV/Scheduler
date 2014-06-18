@@ -138,19 +138,19 @@ void SwiMmuInit(void){
 
 void SwiUdpInit(uint32_t port)
 {
-  broUdpInit(port);
+  BroUdpInit(port);
 }
 upd_package_t* SwiUdpGetData(uint32_t port)
 {
-   return broUdpGetData(port);
+   return BroUdpGetData(port);
 }
 void SwiUdpSendData(uint8_t receiver[],uint32_t port,uint8_t* data, uint32_t datalen){
 
-	broUdpSendData(receiver,port,data,datalen);
+	BroUdpSendData(receiver,port,data,datalen);
 }
 tBoolean SwiUdpHasData(uint32_t port){
 
-	return broUdpHasData(port);
+	return BroUdpHasData(port);
 
 }
 
