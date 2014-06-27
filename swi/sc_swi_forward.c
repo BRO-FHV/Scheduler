@@ -140,7 +140,7 @@ void SwiUdpInit(uint32_t port)
 {
   BroUdpInit(port);
 }
-upd_package_t* SwiUdpGetData(uint32_t port)
+udp_package_t* SwiUdpGetData(uint32_t port)
 {
    return BroUdpGetData(port);
 }

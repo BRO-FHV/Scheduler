@@ -119,13 +119,13 @@ void SwiForward(SyscallArgData* data) {
 
 void SwiHandler(SyscallArgData* data, Context* context) {
 
-	printf("SwiHandler Swi Forward\n");
+//	printf("SwiHandler Swi Forward\n");
 	SwiForward(data);
 
 	Process* proc = SchedulerCurrentProcess();
 
 	if (proc != NULL && proc->state == RUNNING) {
-		printf("SwiHandler: MMU Switch Process\n");
+//		printf("SwiHandler: MMU Switch Process\n");
 		MmuSwitchToProcess(proc);
 	}
 

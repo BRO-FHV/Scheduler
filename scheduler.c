@@ -87,7 +87,7 @@ void SchedulerRunNextProcess(Context* context) {
 
 		}
 
-		printf("next process: %d \n", nextthreadID);
+//		printf("next process: %d \n", nextthreadID);
 
 		gRunningThread = nextthreadID;
 		gThreads[gRunningThread].state = RUNNING;
@@ -98,7 +98,7 @@ void SchedulerRunNextProcess(Context* context) {
 
 		MmuSwitchToProcess(&gThreads[gRunningThread]);
 	}else{
-		printf("current process: %d \n", gRunningThread);
+//		printf("current process: %d \n", gRunningThread);
 	}
 
 	atomicEnd();
