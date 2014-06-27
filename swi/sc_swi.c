@@ -19,7 +19,7 @@
 void SwiForward(SyscallArgData* data) {
 
 	uint32_t result = -1;
-	void* resultPointer=NULL;
+	void* resultPointer = NULL;
 
 	switch (data->swiNumber) {
 
@@ -85,17 +85,25 @@ void SwiForward(SyscallArgData* data) {
 		SwiMmuInit();
 		break;
 	case SYSCALL_UDP_INIT:
-		SwiUdpInit((uint32_t)data->arg1);
+		SwiUdpInit((uint32_t) data->arg1);
 		break;
 	case SYSCALL_UDP_GETDATA:
-		resultPointer= SwiUdpGetData((uint32_t)data->arg1);
-		data->result =(uint32_t)resultPointer;
+		resultPointer = SwiUdpGetData((uint32_t) data->arg1);
+		data->result = (uint32_t) resultPointer;
 		break;
 	case SYSCALL_UDP_SENDDATA:
-		SwiUdpSendData((uint8_t*)data->arg2,(uint32_t)data->arg1,(uint8_t*) data->arg3, (uint32_t)data->arg4);
+		SwiUdpSendData((uint8_t*) data->arg2, (uint32_t) data->arg1,
+				(uint8_t*) data->arg3, (uint32_t) data->arg4);
 		break;
 	case SYSCALL_UDP_HASDATA:
-		result=SwiUdpHasData((uint32_t)data->arg1);
+		result = SwiUdpHasData((uint32_t) data->arg1);
+		data->result = result;
+		break;
+	case SYCALL_STDLIB_FREE:
+		free((void*) data->arg1);
+		break;
+	case SYCALL_STDLIB_MALLOC:
+		resultPointer = malloc((uint32_t) data->arg1);
 		data->result = result;
 		break;
 
