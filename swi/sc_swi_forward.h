@@ -7,14 +7,14 @@
  * TODO
  */
 
+#ifndef DR_SWI_FORWARD_H_
+#define DR_SWI_FORWARD_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <basic.h>
 #include <eth/dr_eth_udp.h>
-
-#ifndef DR_SWI_FORWARD_H_
-#define DR_SWI_FORWARD_H_
 
 void SwiStdioPrintf(const char* text);
 

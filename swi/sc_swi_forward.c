@@ -7,7 +7,7 @@
  * TODO
  */
 
-#include<inttypes.h>
+#include <inttypes.h>
 #include "sc_swi_forward.h"
 #include <stdio.h>
 #include <stdlib.h>

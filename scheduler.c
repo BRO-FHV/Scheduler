@@ -167,8 +167,6 @@ void loadProcessFromElf(uint32_t length, uint8_t* data) {
 		gThreads[newthreadID].pc = (programCounter) entry;
 		gThreads[newthreadID].pc = gThreads[newthreadID].pc + 1;
 		gThreads[newthreadID].cpsr = 0x00000110;
-
-
 	}
 
 	//  irq_enable();
